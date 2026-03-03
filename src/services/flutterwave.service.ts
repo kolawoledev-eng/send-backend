@@ -1,12 +1,17 @@
 import { config } from "../config/index.js";
 
 const FLW_BASE = "https://api.flutterwave.com/v3";
+const FLW_TIMEOUT_MS = 20_000;
 
 function headers(): Record<string, string> {
   return {
     Authorization: `Bearer ${config.FLW_SECRET_KEY}`,
     "Content-Type": "application/json",
   };
+}
+
+function flwFetch(url: string, init?: RequestInit): Promise<Response> {
+  return fetch(url, { ...init, signal: AbortSignal.timeout(FLW_TIMEOUT_MS) });
 }
 
 export interface FlwVirtualAccount {
@@ -39,7 +44,7 @@ export async function createBankTransferCharge(params: {
     meta: { stellar_public_key: params.stellarPublicKey },
   };
 
-  const res = await fetch(`${FLW_BASE}/charges?type=bank_transfer`, {
+  const res = await flwFetch(`${FLW_BASE}/charges?type=bank_transfer`, {
     method: "POST",
     headers: headers(),
     body: JSON.stringify(body),
@@ -100,7 +105,7 @@ export async function createPaymentLink(params: {
     meta: { stellar_public_key: params.stellarPublicKey },
   };
 
-  const res = await fetch(`${FLW_BASE}/payments`, {
+  const res = await flwFetch(`${FLW_BASE}/payments`, {
     method: "POST",
     headers: headers(),
     body: JSON.stringify(body),
@@ -126,7 +131,7 @@ export async function verifyTransaction(flwTxId: string): Promise<{
   currency: string;
   txRef: string;
 }> {
-  const res = await fetch(`${FLW_BASE}/transactions/${flwTxId}/verify`, {
+  const res = await flwFetch(`${FLW_BASE}/transactions/${flwTxId}/verify`, {
     headers: headers(),
   });
   const data = (await res.json()) as {
@@ -176,7 +181,7 @@ export async function createPermanentVirtualAccount(params: {
     narration: params.narration || "Wallet Funding",
   };
 
-  const res = await fetch(`${FLW_BASE}/virtual-account-numbers`, {
+  const res = await flwFetch(`${FLW_BASE}/virtual-account-numbers`, {
     method: "POST",
     headers: headers(),
     body: JSON.stringify(body),
