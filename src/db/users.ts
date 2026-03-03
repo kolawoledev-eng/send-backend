@@ -6,6 +6,7 @@ export interface UserRow {
   id: string;
   provider: string;
   provider_user_id: string;
+  email: string | null;
   stellar_public_key: string | null;
   created_at: Date;
   updated_at: Date;
@@ -13,7 +14,8 @@ export interface UserRow {
 
 export async function registerOrLogin(
   provider: Provider,
-  providerUserId: string
+  providerUserId: string,
+  email?: string | null
 ): Promise<{ isNewUser: boolean; userId: string }> {
   const pool = getPool();
   if (!pool) {
@@ -24,12 +26,18 @@ export async function registerOrLogin(
     [provider, providerUserId]
   );
   if (existing.rows.length > 0) {
+    if (email != null && email.trim() !== "") {
+      await pool.query(
+        "UPDATE users SET email = $1, updated_at = NOW() WHERE id = $2",
+        [email.trim(), existing.rows[0].id]
+      );
+    }
     return { isNewUser: false, userId: existing.rows[0].id };
   }
   const insert = await pool.query<UserRow>(
-    `INSERT INTO users (provider, provider_user_id) VALUES ($1, $2)
+    `INSERT INTO users (provider, provider_user_id, email) VALUES ($1, $2, $3)
      RETURNING id`,
-    [provider, providerUserId]
+    [provider, providerUserId, email?.trim() || null]
   );
   return { isNewUser: true, userId: insert.rows[0].id };
 }

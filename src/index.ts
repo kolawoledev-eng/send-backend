@@ -4,8 +4,10 @@ import { initDb } from "./db/client.js";
 
 async function main() {
   const app = createApp();
-  app.listen(config.PORT, () => {
-    console.log(`Server listening on port ${config.PORT} (${config.NODE_ENV})`);
+  const port = config.PORT;
+  const host = "0.0.0.0";
+  app.listen(port, host, () => {
+    console.log(`Server listening on ${host}:${port} (${config.NODE_ENV})`);
     console.log(`Stellar network: ${config.STELLAR_NETWORK}`);
   });
 

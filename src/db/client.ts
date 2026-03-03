@@ -25,12 +25,16 @@ export async function initDb(): Promise<void> {
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       provider VARCHAR(20) NOT NULL,
       provider_user_id VARCHAR(256) NOT NULL,
+      email VARCHAR(320),
       stellar_public_key VARCHAR(56),
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       UNIQUE(provider, provider_user_id)
     );
     CREATE INDEX IF NOT EXISTS idx_users_provider_uid ON users(provider, provider_user_id);
+  `);
+  await p.query(`
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(320);
   `);
   console.log("Database initialized");
 }

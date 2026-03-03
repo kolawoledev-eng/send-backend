@@ -8,6 +8,7 @@ export const authRouter = Router();
 const registerLoginSchema = z.object({
   provider: z.enum(["apple", "google"]),
   providerUserId: z.string().min(1).max(256),
+  email: z.string().email().max(320).optional().nullable(),
 });
 
 const linkWalletSchema = z.object({
@@ -20,8 +21,8 @@ authRouter.post(
   validateBody(registerLoginSchema),
   async (req, res, next) => {
     try {
-      const { provider, providerUserId } = req.body as z.infer<typeof registerLoginSchema>;
-      const result = await registerOrLogin(provider, providerUserId);
+      const { provider, providerUserId, email } = req.body as z.infer<typeof registerLoginSchema>;
+      const result = await registerOrLogin(provider, providerUserId, email);
       console.log("[auth] register-or-login", { provider, isNewUser: result.isNewUser, userId: result.userId });
       res.json(result);
     } catch (e) {
