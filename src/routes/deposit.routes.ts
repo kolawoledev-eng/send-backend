@@ -344,14 +344,14 @@ depositRouter.post(
         `INSERT INTO virtual_accounts
           (user_id, account_number, bank_name, account_name, flw_ref, order_ref, bvn_hash)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        [userId, va.accountNumber, va.bankName, va.accountName, va.flwRef, va.orderRef, bvnHash]
+        [userId, va.accountNumber, va.bankName, va.note, va.flwRef, va.orderRef, bvnHash]
       );
 
       res.json({
         exists: true,
         accountNumber: va.accountNumber,
         bankName: va.bankName,
-        accountName: va.accountName,
+        accountName: va.note,
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Virtual account creation failed";

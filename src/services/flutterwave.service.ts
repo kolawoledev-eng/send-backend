@@ -152,8 +152,9 @@ export async function verifyTransaction(flwTxId: string): Promise<{
 }
 
 /**
- * Create a permanent virtual account via Flutterwave.
- * Requires BVN for live environment.
+ * Create a static (permanent) NGN virtual account via Flutterwave.
+ * Requires the customer's BVN or NIN.
+ * Docs: https://developer.flutterwave.com/v3.0/docs/ngn-virtual-accounts
  */
 export async function createPermanentVirtualAccount(params: {
   email: string;
@@ -166,7 +167,7 @@ export async function createPermanentVirtualAccount(params: {
 }): Promise<{
   accountNumber: string;
   bankName: string;
-  accountName: string;
+  note: string;
   flwRef: string;
   orderRef: string;
 }> {
@@ -181,6 +182,7 @@ export async function createPermanentVirtualAccount(params: {
     narration: params.narration || "Wallet Funding",
   };
 
+  console.log("[flw] creating static VA for", params.email);
   const res = await flwFetch(`${FLW_BASE}/virtual-account-numbers`, {
     method: "POST",
     headers: headers(),
@@ -190,22 +192,31 @@ export async function createPermanentVirtualAccount(params: {
     status: string;
     message: string;
     data?: {
+      response_code?: string;
+      response_message?: string;
       account_number?: string;
       bank_name?: string;
-      account_name?: string;
+      note?: string;
       flw_ref?: string;
       order_ref?: string;
+      created_at?: string;
+      expiry_date?: string;
+      amount?: string;
+      frequency?: string;
     };
   };
 
+  console.log("[flw] VA response:", data.status, data.message, data.data?.account_number ? "OK" : "NO_ACCOUNT");
+
   if (data.status !== "success" || !data.data?.account_number) {
+    console.error("[flw] VA creation failed:", JSON.stringify(data));
     throw new Error(data.message || "Failed to create virtual account");
   }
 
   return {
     accountNumber: data.data.account_number,
-    bankName: data.data.bank_name ?? "",
-    accountName: data.data.account_name ?? "",
+    bankName: data.data.bank_name ?? "WEMA BANK",
+    note: data.data.note ?? "",
     flwRef: data.data.flw_ref ?? "",
     orderRef: data.data.order_ref ?? "",
   };
