@@ -17,7 +17,14 @@ const envSchema = z.object({
   ANCHOR_PLATFORM_SERVER: z.string().url().optional(),
   ANCHOR_HOME_DOMAIN: z.string().optional(),
   SECRET_SEP24_INTERACTIVE_JWT_SECRET: z.string().optional(),
-  USDC_ISSUER: z.string().optional(),
+  USDC_ISSUER: z.string().default("GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"),
+  // Flutterwave
+  FLW_PUBLIC_KEY: z.string().optional(),
+  FLW_SECRET_KEY: z.string().optional(),
+  FLW_ENCRYPTION_KEY: z.string().optional(),
+  FLW_WEBHOOK_HASH: z.string().optional(),
+  // Distribution account secret key for sending USDC to users
+  DISTRIBUTION_SECRET_KEY: z.string().optional(),
 });
 
 export type Config = z.infer<typeof envSchema>;
