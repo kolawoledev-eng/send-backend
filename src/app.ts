@@ -23,3 +23,4 @@ export function createApp(): express.Application {
   app.use(errorHandler);
   return app;
 }
+
