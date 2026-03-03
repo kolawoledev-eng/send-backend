@@ -1,0 +1,57 @@
+import { getPool } from "./client.js";
+
+export type Provider = "apple" | "google";
+
+export interface UserRow {
+  id: string;
+  provider: string;
+  provider_user_id: string;
+  stellar_public_key: string | null;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export async function registerOrLogin(
+  provider: Provider,
+  providerUserId: string
+): Promise<{ isNewUser: boolean; userId: string }> {
+  const pool = getPool();
+  if (!pool) {
+    return { isNewUser: true, userId: "" };
+  }
+  const existing = await pool.query<UserRow>(
+    "SELECT id, created_at FROM users WHERE provider = $1 AND provider_user_id = $2",
+    [provider, providerUserId]
+  );
+  if (existing.rows.length > 0) {
+    return { isNewUser: false, userId: existing.rows[0].id };
+  }
+  const insert = await pool.query<UserRow>(
+    `INSERT INTO users (provider, provider_user_id) VALUES ($1, $2)
+     RETURNING id`,
+    [provider, providerUserId]
+  );
+  return { isNewUser: true, userId: insert.rows[0].id };
+}
+
+export async function linkWallet(userId: string, stellarPublicKey: string): Promise<void> {
+  const pool = getPool();
+  if (!pool) return;
+  await pool.query(
+    "UPDATE users SET stellar_public_key = $1, updated_at = NOW() WHERE id = $2",
+    [stellarPublicKey, userId]
+  );
+}
+
+export async function getUserByProvider(
+  provider: Provider,
+  providerUserId: string
+): Promise<UserRow | null> {
+  const pool = getPool();
+  if (!pool) return null;
+  const r = await pool.query<UserRow>(
+    "SELECT * FROM users WHERE provider = $1 AND provider_user_id = $2",
+    [provider, providerUserId]
+  );
+  return r.rows[0] ?? null;
+}
