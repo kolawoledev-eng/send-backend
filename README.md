@@ -1,0 +1,80 @@
+# Stellar Wallet Backend
+
+Node.js + TypeScript API for the Stellar wallet app. Uses **@stellar/stellar-sdk** for Horizon and Soroban RPC (mainnet-ready).
+
+## Structure
+
+```
+backend/
+├── src/
+│   ├── config/         # Env and Stellar config
+│   ├── middleware/     # Error, validation
+│   ├── routes/        # health, wallet, stellar
+│   ├── services/      # StellarService (Horizon + Soroban)
+│   ├── app.ts
+│   └── index.ts
+├── tests/
+├── Dockerfile
+├── railway.json
+├── .env.example
+└── package.json
+```
+
+## Setup
+
+1. Copy env and set RPC/Horizon URLs:
+
+```bash
+cp .env.example .env
+# Edit .env: SOROBAN_RPC_URL, STELLAR_HORIZON_URL
+```
+
+2. Install and run:
+
+```bash
+npm install
+npm run dev
+```
+
+3. For production (build then start):
+
+```bash
+npm run build
+npm start
+```
+
+## Mainnet
+
+When moving to mainnet, in `.env` set:
+
+- `STELLAR_NETWORK=public`
+- `SOROBAN_RPC_URL=https://soroban-mainnet.stellar.org` (or your RPC)
+- `STELLAR_HORIZON_URL=https://horizon.stellar.org`
+
+## API
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/health` | Status + timestamp |
+| GET | `/api/health/live` | Liveness |
+| GET | `/api/health/ready` | Readiness (includes Stellar RPC) |
+| GET | `/api/wallet/balances?publicKey=G...` | Account balances |
+| GET | `/api/wallet/exists?publicKey=G...` | Account exists |
+| GET | `/api/stellar/network` | Current network (testnet/public) |
+| GET | `/api/stellar/ledger` | Latest ledger sequence |
+
+## Railway
+
+- **Build**: Dockerfile (multi-stage Node 20).
+- **Deploy**: Set env vars in Railway dashboard from `.env.example`.
+- **Health**: `GET /api/health/live` used as healthcheck.
+
+**Full steps:** see [DEPLOY_RAILWAY.md](./DEPLOY_RAILWAY.md) for CLI deploy, GitHub deploy, and how to connect the Flutter app to your Railway URL.
+
+## Optional: Auth
+
+To add auth (e.g. Firebase or JWT), add:
+
+- `src/routes/auth.routes.ts` – login/verify
+- `src/middleware/auth.middleware.ts` – attach user to `req`
+- Mount auth routes and protect `/api/wallet/*` with the middleware.
