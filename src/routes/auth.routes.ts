@@ -8,7 +8,7 @@ export const authRouter = Router();
 const registerLoginSchema = z.object({
   provider: z.enum(["apple", "google"]),
   providerUserId: z.string().min(1).max(256),
-  email: z.string().email().max(320).optional().nullable(),
+  email: z.string().max(320).optional().nullable(),
 });
 
 const linkWalletSchema = z.object({

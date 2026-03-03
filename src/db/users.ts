@@ -26,7 +26,7 @@ export async function registerOrLogin(
     [provider, providerUserId]
   );
   if (existing.rows.length > 0) {
-    if (email != null && email.trim() !== "") {
+    if (email != null && email.trim() !== "" && email.includes("@")) {
       await pool.query(
         "UPDATE users SET email = $1, updated_at = NOW() WHERE id = $2",
         [email.trim(), existing.rows[0].id]
@@ -37,7 +37,7 @@ export async function registerOrLogin(
   const insert = await pool.query<UserRow>(
     `INSERT INTO users (provider, provider_user_id, email) VALUES ($1, $2, $3)
      RETURNING id`,
-    [provider, providerUserId, email?.trim() || null]
+    [provider, providerUserId, email?.trim() && email.includes("@") ? email.trim() : null]
   );
   return { isNewUser: true, userId: insert.rows[0].id };
 }
