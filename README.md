@@ -62,6 +62,8 @@ When moving to mainnet, in `.env` set:
 | GET | `/api/wallet/exists?publicKey=G...` | Account exists |
 | GET | `/api/stellar/network` | Current network (testnet/public) |
 | GET | `/api/stellar/ledger` | Latest ledger sequence |
+| POST | `/api/auth/register-or-login` | Body: `{ provider, providerUserId }` → `{ isNewUser, userId }` |
+| POST | `/api/auth/link-wallet` | Body: `{ userId, stellarPublicKey }` – link wallet to user (sign-up) |
 
 ## Railway
 

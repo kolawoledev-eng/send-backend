@@ -25,7 +25,11 @@ railway domain        # add a public domain, e.g. your-app.up.railway.app
 3. Select the repo and set **Root Directory** to `backend` (so Dockerfile is used).
 4. Add a public domain: Settings → Networking → Generate Domain.
 
-## 3. Set environment variables
+## 3. Add PostgreSQL (for user storage)
+
+In Railway → your project → **New** → **Database** → **PostgreSQL**. Railway will set `DATABASE_URL` on your service. Link the Postgres service to your backend service so the backend gets `DATABASE_URL`. The backend creates the `users` table on startup.
+
+## 4. Set environment variables
 
 In Railway → your service → Variables, set (or leave defaults for testnet):
 
@@ -33,6 +37,7 @@ In Railway → your service → Variables, set (or leave defaults for testnet):
 |----------|---------|-------------|
 | `NODE_ENV` | `production` | |
 | `PORT` | (Railway sets this) | |
+| `DATABASE_URL` | (set by Railway when you add Postgres) | User storage; optional in dev |
 | `STELLAR_NETWORK` | `testnet` or `public` | |
 | `SOROBAN_RPC_URL` | `https://soroban-testnet.stellar.org` | Testnet RPC |
 | `STELLAR_HORIZON_URL` | `https://horizon-testnet.stellar.org` | Testnet Horizon |
@@ -43,7 +48,7 @@ For **mainnet** use:
 - `SOROBAN_RPC_URL=https://soroban-mainnet.stellar.org` (or your RPC)
 - `STELLAR_HORIZON_URL=https://horizon.stellar.org`
 
-## 4. Connect the mobile app
+## 5. Connect the mobile app
 
 After deploy, copy your public URL (e.g. `https://stellar-wallet-backend-production.up.railway.app`).
 
@@ -64,3 +69,26 @@ defaultValue: 'https://YOUR_RAILWAY_APP.up.railway.app',
 ```
 
 Then rebuild the app. The wallet home screen will load balances from your Railway backend.
+
+## 6. Verify from terminal
+
+Replace `https://YOUR_RAILWAY_APP.up.railway.app` with your real backend URL (e.g. from Railway → Settings → Networking → Public URL).
+
+```bash
+# Health (liveness)
+curl -s https://YOUR_RAILWAY_APP.up.railway.app/api/health/live
+
+# Readiness (includes Stellar RPC)
+curl -s https://YOUR_RAILWAY_APP.up.railway.app/api/health/ready
+
+# API root
+curl -s https://YOUR_RAILWAY_APP.up.railway.app/api/
+```
+
+Or set the base URL once and run:
+
+```bash
+export BACKEND_URL="https://send-backend-production-ecdc.up.railway.app"
+curl -s "$BACKEND_URL/api/health/live"
+curl -s "$BACKEND_URL/api/health/ready"
+```
