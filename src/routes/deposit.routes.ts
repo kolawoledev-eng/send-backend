@@ -258,28 +258,36 @@ const virtualAccountSchema = z.object({
  * GET /api/deposit/virtual-account
  * Auth required. Returns the user's existing permanent virtual account, or null.
  */
-depositRouter.get("/virtual-account", requireAuth, async (req, res) => {
+depositRouter.get("/virtual-account", requireAuth, async (req, res, next) => {
   const userId = (req as Request & { userId: string }).userId;
+  console.log("[deposit] GET virtual-account for user", userId);
   const pool = getPool();
   if (!pool) {
     res.status(503).json({ error: "Database not available" });
     return;
   }
-  const row = await pool.query(
-    "SELECT * FROM virtual_accounts WHERE user_id = $1",
-    [userId]
-  );
-  if (row.rows.length === 0) {
-    res.json({ exists: false });
-    return;
+  try {
+    const row = await pool.query(
+      "SELECT * FROM virtual_accounts WHERE user_id = $1",
+      [userId]
+    );
+    if (row.rows.length === 0) {
+      console.log("[deposit] no VA found for user", userId);
+      res.json({ exists: false });
+      return;
+    }
+    const va = row.rows[0];
+    console.log("[deposit] VA found:", va.account_number);
+    res.json({
+      exists: true,
+      accountNumber: va.account_number,
+      bankName: va.bank_name,
+      accountName: va.account_name,
+    });
+  } catch (err) {
+    console.error("[deposit] GET VA error:", err);
+    next(err);
   }
-  const va = row.rows[0];
-  res.json({
-    exists: true,
-    accountNumber: va.account_number,
-    bankName: va.bank_name,
-    accountName: va.account_name,
-  });
 });
 
 /**
@@ -292,10 +300,12 @@ depositRouter.post(
   validateBody(virtualAccountSchema),
   async (req, res) => {
     const userId = (req as Request & { userId: string }).userId;
+    console.log("[deposit] POST virtual-account for user", userId);
     const { bvn, firstName, lastName, phoneNumber, email } =
       req.body as z.infer<typeof virtualAccountSchema>;
 
     if (!config.FLW_SECRET_KEY) {
+      console.warn("[deposit] FLW_SECRET_KEY not set");
       res.status(503).json({ error: "Payment provider not configured" });
       return;
     }
