@@ -36,3 +36,23 @@ walletRouter.get(
     }
   }
 );
+
+/** Fund a new account on testnet via Friendbot (only when STELLAR_NETWORK=testnet). */
+walletRouter.get(
+  "/fund",
+  validateQuery(publicKeyQuerySchema),
+  async (req, res, next) => {
+    try {
+      const { publicKey } = req.query as z.infer<typeof publicKeyQuerySchema>;
+      const ok = await stellarService.fundTestnetAccount(publicKey);
+      if (!ok) {
+        return res.status(400).json({
+          error: "Funding only available on testnet, or invalid public key",
+        });
+      }
+      res.json({ publicKey, funded: true });
+    } catch (e) {
+      next(e);
+    }
+  }
+);

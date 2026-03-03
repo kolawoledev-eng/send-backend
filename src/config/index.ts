@@ -8,9 +8,9 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(1).default("change-me-in-production"),
   GOOGLE_CLIENT_ID: z.string().optional(),
   APPLE_CLIENT_ID: z.string().optional(),
-  STELLAR_NETWORK: z.enum(["testnet", "public"]).default("testnet"),
-  SOROBAN_RPC_URL: z.string().url().default("https://soroban-testnet.stellar.org"),
-  STELLAR_HORIZON_URL: z.string().url().default("https://horizon-testnet.stellar.org"),
+  STELLAR_NETWORK: z.enum(["testnet", "public"]).default("public"),
+  SOROBAN_RPC_URL: z.string().url().default("https://soroban-mainnet.stellar.org"),
+  STELLAR_HORIZON_URL: z.string().url().default("https://horizon.stellar.org"),
   STELLAR_SERVER_SECRET_KEY: z.string().optional(),
   CORS_ORIGINS: z.string().default("*"),
 });

@@ -70,6 +70,18 @@ export class StellarService {
       return false;
     }
   }
+
+  /**
+   * Fund a new account on testnet via Friendbot (no-op on mainnet).
+   * Returns true if funding was requested successfully.
+   */
+  async fundTestnetAccount(publicKey: string): Promise<boolean> {
+    if (stellarConfig.network !== "testnet") return false;
+    if (!this.isValidPublicKey(publicKey)) return false;
+    const url = `https://friendbot.stellar.org/?addr=${encodeURIComponent(publicKey)}`;
+    const res = await fetch(url);
+    return res.ok;
+  }
 }
 
 export const stellarService = new StellarService();
