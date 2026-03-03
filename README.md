@@ -54,6 +54,12 @@ The same keypairs work on testnet and mainnet. To use **mainnet**:
 
 2. **App** – Wallet creation stays the same (public/secret keypair). The app uses your backend for balances and data; once the backend points at mainnet Horizon/Soroban, the app will show mainnet balances. You don’t need to change keypairs when switching to mainnet.
 
+## USDC on Stellar
+
+- **Trustline required** – A Stellar wallet must have a **trustline** set up for USDC before it can receive or hold USDC. The app should establish (or prompt to establish) the USDC trustline before “receive USDC” or on-ramp flows.
+- **Settlement** – USDC on Stellar settles in ~5 seconds with fees of fractions of a cent.
+- **Scale** – As of March 2025, there is over $200M USDC in circulation on Stellar.
+
 ## API
 
 | Method | Path | Description |

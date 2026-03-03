@@ -1,0 +1,14 @@
+# Stellar TOML for your anchor (host at https://yourdomain.com/.well-known/stellar.toml)
+# Replace yourdomain.com and keys with your values.
+
+TRANSFER_SERVER_SEP0024 = "https://yourdomain.com/api/sep24"
+WEB_AUTH_ENDPOINT = "https://yourdomain.com/auth"
+SIGNING_KEY = "YOUR_DISTRIBUTION_ACCOUNT_PUBLIC_KEY"
+
+[[CURRENCIES]]
+code = "USDC"
+issuer = "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+status = "live"
+is_asset_anchored = true
+anchor_asset_type = "fiat"
+desc = "Buy USDC with Nigerian Naira"

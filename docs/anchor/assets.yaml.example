@@ -1,0 +1,17 @@
+# Anchor Platform assets config (used by Stellar Anchor Platform deployment)
+# Replace YOUR_DISTRIBUTION_ACCOUNT_PUBLIC_KEY and issuer with your values.
+
+items:
+  - id: stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+    distribution_account: YOUR_DISTRIBUTION_ACCOUNT_PUBLIC_KEY
+    significant_decimals: 2
+    sep24:
+      enabled: true
+      deposit:
+        enabled: true
+        min_amount: 1000      # ₦1,000 min
+        max_amount: 50000000  # ₦50M max
+        methods:
+          - bank_transfer
+          - USSD
+          - mobile_money
