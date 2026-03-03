@@ -45,11 +45,14 @@ npm start
 
 ## Mainnet
 
-When moving to mainnet, in `.env` set:
+The same keypairs work on testnet and mainnet. To use **mainnet**:
 
-- `STELLAR_NETWORK=public`
-- `SOROBAN_RPC_URL=https://soroban-mainnet.stellar.org` (or your RPC)
-- `STELLAR_HORIZON_URL=https://horizon.stellar.org`
+1. **Backend (Railway)** – In your service variables set:
+   - `STELLAR_NETWORK=public`
+   - `SOROBAN_RPC_URL=https://soroban-mainnet.stellar.org` (or your RPC)
+   - `STELLAR_HORIZON_URL=https://horizon.stellar.org`
+
+2. **App** – Wallet creation stays the same (public/secret keypair). The app uses your backend for balances and data; once the backend points at mainnet Horizon/Soroban, the app will show mainnet balances. You don’t need to change keypairs when switching to mainnet.
 
 ## API
 
