@@ -47,8 +47,8 @@ export class StellarService {
       }
       return balances;
     } catch (e: unknown) {
-      const errName = (e as { name?: string })?.name;
-      if (errName === "NotFoundError") {
+      const status = (e as { response?: { status?: number } })?.response?.status;
+      if (status === 404) {
         return [];
       }
       throw e;
