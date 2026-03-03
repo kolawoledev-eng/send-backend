@@ -1,4 +1,13 @@
-import { Horizon, Keypair, rpc } from "@stellar/stellar-sdk";
+import {
+  Horizon,
+  Keypair,
+  rpc,
+  TransactionBuilder,
+  Networks,
+  Operation,
+  BASE_FEE,
+} from "@stellar/stellar-sdk";
+import { config } from "../config/index.js";
 import { getHorizonServer, getSorobanServer, stellarConfig } from "../config/stellar.js";
 
 export interface AccountBalance {
@@ -21,21 +30,29 @@ export class StellarService {
   }
 
   async getAccountBalances(publicKey: string): Promise<AccountBalance[]> {
-    const account = await this.horizon.loadAccount(publicKey);
-    const balances: AccountBalance[] = [];
+    try {
+      const account = await this.horizon.loadAccount(publicKey);
+      const balances: AccountBalance[] = [];
 
-    for (const b of account.balances) {
-      if (b.asset_type === "native") {
-        balances.push({ assetCode: "XLM", balance: b.balance });
-      } else if ("asset_code" in b && "asset_issuer" in b) {
-        balances.push({
-          assetCode: b.asset_code,
-          assetIssuer: b.asset_issuer,
-          balance: b.balance,
-        });
+      for (const b of account.balances) {
+        if (b.asset_type === "native") {
+          balances.push({ assetCode: "XLM", balance: b.balance });
+        } else if ("asset_code" in b && "asset_issuer" in b) {
+          balances.push({
+            assetCode: b.asset_code,
+            assetIssuer: b.asset_issuer,
+            balance: b.balance,
+          });
+        }
       }
+      return balances;
+    } catch (e: unknown) {
+      const errName = (e as { name?: string })?.name;
+      if (errName === "NotFoundError") {
+        return [];
+      }
+      throw e;
     }
-    return balances;
   }
 
   async getAccountExists(publicKey: string): Promise<boolean> {
@@ -72,15 +89,51 @@ export class StellarService {
   }
 
   /**
-   * Fund a new account on testnet via Friendbot (no-op on mainnet).
-   * Returns true if funding was requested successfully.
+   * Activate a new account by sending startingBalance XLM from the distribution account.
+   * Works on both testnet and mainnet. Falls back to Friendbot on testnet if no
+   * distribution key is configured.
    */
-  async fundTestnetAccount(publicKey: string): Promise<boolean> {
-    if (stellarConfig.network !== "testnet") return false;
+  async fundNewAccount(publicKey: string, startingBalance = "1.5"): Promise<boolean> {
     if (!this.isValidPublicKey(publicKey)) return false;
-    const url = `https://friendbot.stellar.org/?addr=${encodeURIComponent(publicKey)}`;
-    const res = await fetch(url);
-    return res.ok;
+
+    const distSecret = config.DISTRIBUTION_SECRET_KEY;
+    if (distSecret) {
+      try {
+        const distKeypair = Keypair.fromSecret(distSecret);
+        const networkPassphrase =
+          stellarConfig.network === "public" ? Networks.PUBLIC : Networks.TESTNET;
+
+        const sourceAccount = await this.horizon.loadAccount(distKeypair.publicKey());
+        const tx = new TransactionBuilder(sourceAccount, {
+          fee: BASE_FEE,
+          networkPassphrase,
+        })
+          .addOperation(
+            Operation.createAccount({
+              destination: publicKey,
+              startingBalance,
+            })
+          )
+          .setTimeout(30)
+          .build();
+
+        tx.sign(distKeypair);
+        await this.horizon.submitTransaction(tx);
+        console.log(`[stellar] funded ${publicKey} with ${startingBalance} XLM`);
+        return true;
+      } catch (e) {
+        console.error("[stellar] createAccount failed:", e);
+      }
+    }
+
+    // Fallback: Friendbot on testnet
+    if (stellarConfig.network === "testnet") {
+      const url = `https://friendbot.stellar.org/?addr=${encodeURIComponent(publicKey)}`;
+      const res = await fetch(url);
+      return res.ok;
+    }
+
+    return false;
   }
 }
 
